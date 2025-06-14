@@ -1,0 +1,858 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Sistema de Sinais - Double</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-stop {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-running {
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        .status-stopped {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .resultados-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .resultado-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .resultado-vermelho {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        }
+
+        .resultado-preto {
+            background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
+        }
+
+        .resultado-branco {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #333;
+            text-shadow: none;
+        }
+
+        .sinal-ativo {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 3px solid #ff6b35;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 10px #ff6b35; }
+            to { box-shadow: 0 0 20px #ff6b35, 0 0 30px #ff6b35; }
+        }
+
+        .sinal-emoji {
+            font-size: 3rem;
+            margin: 10px 0;
+        }
+
+        .historico-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .historico-acerto {
+            border-left-color: #28a745;
+        }
+
+        .historico-erro {
+            border-left-color: #dc3545;
+        }
+
+        .banca-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+
+        .banca-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .banca-valor {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .banca-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Sistema de Sinais</h1>
+            <p>Análise automática de padrões para Double</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-start" onclick="iniciarSistema()">
+                <span class="status-indicator" id="statusIndicator"></span>
+                Iniciar Sistema
+            </button>
+            <button class="btn btn-stop" onclick="pararSistema()">Parar Sistema</button>
+            <button class="btn btn-reset" onclick="resetarSistema()">Resetar</button>
+        </div>
+
+        <div id="sinalAtivo"></div>
+
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-title">📈 Últimos Resultados</div>
+                <div id="resultados" class="loading">Carregando...</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">💰 Status da Banca</div>
+                <div id="banca" class="loading">Carregando...</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 Informações do Sistema</div>
+                <div id="infoSistema" class="loading">Carregando...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📋 Histórico de Sinais</div>
+            <div id="historicoSinais" class="loading">Carregando...</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🎯 Estratégias Personalizadas</div>
+            <div style="margin-bottom: 20px;">
+                <button class="btn" style="background: #007bff; color: white;" onclick="mostrarFormularioEstrategia()">
+                    ➕ Adicionar Nova Estratégia
+                </button>
+            </div>
+            <div id="estrategiasPersonalizadas" class="loading">Carregando...</div>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar estratégia -->
+    <div id="modalEstrategia" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+            <h3 style="margin-bottom: 20px;">🎯 Criar Nova Estratégia</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Estratégia:</label>
+                <select id="tipoEstrategia" onchange="alterarTipoEstrategia()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="sequencia">Sequência de Cores</option>
+                    <option value="numero">Número Específico</option>
+                    <option value="contagem">Contagem de Cores</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Nome da Estratégia:</label>
+                <input type="text" id="nomeEstrategia" placeholder="Ex: Minha Estratégia V-P-V" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Descrição (opcional):</label>
+                <textarea id="descricaoEstrategia" placeholder="Descreva como funciona sua estratégia..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; height: 60px; resize: vertical;"></textarea>
+            </div>
+
+            <!-- Campos específicos para cada tipo -->
+            <div id="camposSequencia">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Sequência de Cores:</label>
+                    <div id="sequenciaCores" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <!-- Será preenchido dinamicamente -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" onclick="adicionarCor('vermelho')" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 4px;">🔴 Vermelho</button>
+                        <button type="button" onclick="adicionarCor('preto')" style="padding: 5px 10px; background: #343a40; color: white; border: none; border-radius: 4px;">⚫ Preto</button>
+                        <button type="button" onclick="adicionarCor('branco')" style="padding: 5px 10px; background: #f8f9fa; color: #333; border: 1px solid #ddd; border-radius: 4px;">⚪ Branco</button>
+                        <button type="button" onclick="limparSequencia()" style="padding: 5px 10px; background: #6c757d; color: white; border: none; border-radius: 4px;">🗑️ Limpar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="camposNumero" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Número Gatilho (0-14):</label>
+                    <input type="number" id="numeroGatilho" min="0" max="14" placeholder="Ex: 7" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Pedras para Esperar:</label>
+                    <input type="number" id="pedrasEsperar" min="1" max="20" placeholder="Ex: 6" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+
+            <div id="camposContagem" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Cor para Contar:</label>
+                    <select id="corContar" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="vermelho">🔴 Vermelho</option>
+                        <option value="preto">⚫ Preto</option>
+                        <option value="branco">⚪ Branco</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Quantidade Mínima:</label>
+                    <input type="number" id="quantidadeMinima" min="1" max="20" placeholder="Ex: 5" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Janela de Análise:</label>
+                    <input type="number" id="janelaAnalise" min="5" max="50" value="10" placeholder="Ex: 10" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Apostar em:</label>
+                <select id="apostarEm" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="vermelho">🔴 Vermelho</option>
+                    <option value="preto">⚫ Preto</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Confiança (1-100%):</label>
+                <input type="number" id="confiancaEstrategia" min="1" max="100" value="70" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="fecharModalEstrategia()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px;">Cancelar</button>
+                <button type="button" onclick="salvarEstrategia()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px;">Salvar Estratégia</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sistemaRodando = false;
+        let intervalId = null;
+
+        function atualizarStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    sistemaRodando = data.sistema_rodando;
+                    
+                    // Atualizar indicador de status
+                    const indicator = document.getElementById('statusIndicator');
+                    indicator.className = `status-indicator ${sistemaRodando ? 'status-running' : 'status-stopped'}`;
+                    
+                    // Atualizar resultados
+                    atualizarResultados(data.resultados);
+                    
+                    // Atualizar sinal ativo
+                    atualizarSinalAtivo(data.sinal_ativo, data.aguardando_resultado);
+                    
+                    // Atualizar banca
+                    atualizarBanca(data.banca);
+                    
+                    // Atualizar info do sistema
+                    atualizarInfoSistema(data);
+                    
+                    // Atualizar histórico
+                    atualizarHistorico(data.historico_sinais);
+                    
+                    // Atualizar estratégias personalizadas
+                    atualizarEstrategiasPersonalizadas();
+                })
+                .catch(error => {
+                    console.error('Erro ao obter status:', error);
+                });
+        }
+
+        function atualizarResultados(resultados) {
+            const container = document.getElementById('resultados');
+            if (!resultados || resultados.length === 0) {
+                container.innerHTML = '<div class="loading">Nenhum resultado disponível</div>';
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'resultados-grid';
+            
+            resultados.slice(0, 10).forEach(resultado => {
+                const item = document.createElement('div');
+                item.className = `resultado-item resultado-${resultado.cor}`;
+                item.textContent = resultado.numero;
+                item.title = `${resultado.numero} - ${resultado.cor}`;
+                grid.appendChild(item);
+            });
+            
+            container.innerHTML = '';
+            container.appendChild(grid);
+        }
+
+        function atualizarSinalAtivo(sinal, aguardando) {
+            const container = document.getElementById('sinalAtivo');
+            
+            if (sinal && aguardando) {
+                const emoji = sinal.entrada === 'vermelho' ? '🔴' : '⚫';
+                container.innerHTML = `
+                    <div class="sinal-ativo">
+                        <div style="font-size: 1.2rem; font-weight: bold;">🚨 SINAL DETECTADO!</div>
+                        <div class="sinal-emoji">${emoji} + ⚪</div>
+                        <div style="margin: 10px 0;">
+                            <strong>Confiança:</strong> ${sinal.confianca}%<br>
+                            <strong>Estratégia:</strong> ${sinal.estrategia}<br>
+                            <strong>Sistema:</strong> ${sinal.gale}
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666;">⏰ Aguardando próximo resultado...</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        function atualizarBanca(banca) {
+            const container = document.getElementById('banca');
+            const lucroClass = banca.lucro >= 0 ? 'text-success' : 'text-danger';
+            
+            container.innerHTML = `
+                <div class="banca-info">
+                    <div class="banca-item">
+                        <div class="banca-valor">R$ ${banca.banca_atual.toFixed(2)}</div>
+                        <div class="banca-label">Banca Atual</div>
+                    </div>
+                    <div class="banca-item">
+                        <div class="banca-valor" style="color: ${banca.lucro >= 0 ? '#28a745' : '#dc3545'}">
+                            R$ ${banca.lucro.toFixed(2)}
+                        </div>
+                        <div class="banca-label">Lucro/Prejuízo</div>
+                    </div>
+                    <div class="banca-item">
+                        <div class="banca-valor" style="color: ${banca.percentual >= 0 ? '#28a745' : '#dc3545'}">
+                            ${banca.percentual.toFixed(1)}%
+                        </div>
+                        <div class="banca-label">Percentual</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function atualizarInfoSistema(data) {
+            const container = document.getElementById('infoSistema');
+            const statusText = data.sistema_rodando ? 'Rodando' : 'Parado';
+            const statusColor = data.sistema_rodando ? '#28a745' : '#dc3545';
+            
+            container.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>Status:</strong> 
+                    <span style="color: ${statusColor}; font-weight: bold;">${statusText}</span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>Histórico de Análise:</strong> ${data.historico_estrategia} resultados
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>Sinais Processados:</strong> ${data.historico_sinais.length}
+                </div>
+                ${data.banca.em_gale ? `
+                    <div style="color: #ff9800; font-weight: bold;">
+                        ⚠️ Em Gale G${data.banca.tentativa_gale}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function atualizarHistorico(historico) {
+            const container = document.getElementById('historicoSinais');
+            
+            if (!historico || historico.length === 0) {
+                container.innerHTML = '<div class="loading">Nenhum sinal processado ainda</div>';
+                return;
+            }
+
+            const items = historico.map(item => {
+                const classe = item.acertou ? 'historico-acerto' : 'historico-erro';
+                const emoji = item.sinal.entrada === 'vermelho' ? '🔴' : '⚫';
+                const resultadoEmoji = item.cor_resultado === 'vermelho' ? '🔴' : 
+                                     item.cor_resultado === 'preto' ? '⚫' : '⚪';
+                
+                return `
+                    <div class="historico-item ${classe}">
+                        <div>
+                            <strong>${item.timestamp}</strong> - 
+                            Sinal: ${emoji} | Resultado: ${item.resultado}${resultadoEmoji} | 
+                            ${item.sinal.estrategia}
+                        </div>
+                        <div style="font-weight: bold; color: ${item.acertou ? '#28a745' : '#dc3545'}">
+                            ${item.acertou ? '✅' : '❌'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = items;
+        }
+
+        function iniciarSistema() {
+            fetch('/api/iniciar')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'iniciado') {
+                        alert('✅ Sistema iniciado com sucesso!');
+                        if (!intervalId) {
+                            intervalId = setInterval(atualizarStatus, 2000);
+                        }
+                    } else {
+                        alert('ℹ️ Sistema já está rodando!');
+                    }
+                })
+                .catch(error => {
+                    alert('❌ Erro ao iniciar sistema: ' + error);
+                });
+        }
+
+        function pararSistema() {
+            fetch('/api/parar')
+                .then(response => response.json())
+                .then(data => {
+                    alert('⏹️ Sistema parado!');
+                    if (intervalId) {
+                        clearInterval(intervalId);
+                        intervalId = null;
+                    }
+                })
+                .catch(error => {
+                    alert('❌ Erro ao parar sistema: ' + error);
+                });
+        }
+
+        function resetarSistema() {
+            if (confirm('⚠️ Tem certeza que deseja resetar o sistema? Isso apagará todo o histórico!')) {
+                fetch('/api/reset')
+                    .then(response => response.json())
+                    .then(data => {
+                        alert('🔄 Sistema resetado com sucesso!');
+                        atualizarStatus();
+                    })
+                    .catch(error => {
+                        alert('❌ Erro ao resetar sistema: ' + error);
+                    });
+            }
+        }
+
+        // FUNÇÕES PARA ESTRATÉGIAS PERSONALIZADAS
+        let sequenciaAtual = [];
+
+        function atualizarEstrategiasPersonalizadas() {
+            fetch('/api/estrategias')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('estrategiasPersonalizadas');
+                    
+                    if (!data.estrategias || data.estrategias.length === 0) {
+                        container.innerHTML = '<div class="loading">Nenhuma estratégia personalizada criada ainda</div>';
+                        return;
+                    }
+
+                    const items = data.estrategias.map(estrategia => {
+                        const statusClass = estrategia.ativa ? 'text-success' : 'text-muted';
+                        const statusText = estrategia.ativa ? 'Ativa' : 'Inativa';
+                        const tipoTexto = estrategia.tipo === 'sequencia_cores' ? 'Sequência' : 
+                                         estrategia.tipo === 'numero_especifico' ? 'Número' : 'Contagem';
+                        
+                        return `
+                            <div class="historico-item" style="margin-bottom: 10px;">
+                                <div>
+                                    <strong>${estrategia.nome}</strong> (${tipoTexto}) - 
+                                    <span style="color: ${estrategia.ativa ? '#28a745' : '#6c757d'}; font-weight: bold;">${statusText}</span><br>
+                                    <small>Confiança: ${estrategia.confianca}% | Acertos: ${estrategia.acertos}/${estrategia.tentativas} (${estrategia.taxa_acerto.toFixed(1)}%)</small><br>
+                                    ${estrategia.descricao ? `<small style="color: #666;">${estrategia.descricao}</small>` : ''}
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <button onclick="toggleEstrategia(${estrategia.id}, ${!estrategia.ativa})" 
+                                            style="padding: 5px 10px; background: ${estrategia.ativa ? '#ffc107' : '#28a745'}; color: white; border: none; border-radius: 4px; font-size: 12px;">
+                                        ${estrategia.ativa ? '⏸️' : '▶️'}
+                                    </button>
+                                    <button onclick="removerEstrategia(${estrategia.id})" 
+                                            style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; font-size: 12px;">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    container.innerHTML = items;
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar estratégias:', error);
+                });
+        }
+
+        function mostrarFormularioEstrategia() {
+            document.getElementById('modalEstrategia').style.display = 'block';
+            limparFormulario();
+        }
+
+        function fecharModalEstrategia() {
+            document.getElementById('modalEstrategia').style.display = 'none';
+        }
+
+        function alterarTipoEstrategia() {
+            const tipo = document.getElementById('tipoEstrategia').value;
+            
+            // Ocultar todos os campos específicos
+            document.getElementById('camposSequencia').style.display = 'none';
+            document.getElementById('camposNumero').style.display = 'none';
+            document.getElementById('camposContagem').style.display = 'none';
+            
+            // Mostrar campos do tipo selecionado
+            if (tipo === 'sequencia') {
+                document.getElementById('camposSequencia').style.display = 'block';
+            } else if (tipo === 'numero') {
+                document.getElementById('camposNumero').style.display = 'block';
+            } else if (tipo === 'contagem') {
+                document.getElementById('camposContagem').style.display = 'block';
+            }
+        }
+
+        function adicionarCor(cor) {
+            sequenciaAtual.push(cor);
+            atualizarVisualizacaoSequencia();
+        }
+
+        function limparSequencia() {
+            sequenciaAtual = [];
+            atualizarVisualizacaoSequencia();
+        }
+
+        function atualizarVisualizacaoSequencia() {
+            const container = document.getElementById('sequenciaCores');
+            
+            if (sequenciaAtual.length === 0) {
+                container.innerHTML = '<div style="color: #666; font-style: italic;">Clique nos botões acima para criar a sequência</div>';
+                return;
+            }
+
+            const items = sequenciaAtual.map((cor, index) => {
+                const emoji = cor === 'vermelho' ? '🔴' : cor === 'preto' ? '⚫' : '⚪';
+                const bgColor = cor === 'vermelho' ? '#dc3545' : cor === 'preto' ? '#343a40' : '#f8f9fa';
+                const textColor = cor === 'branco' ? '#333' : 'white';
+                
+                return `
+                    <div style="display: flex; align-items: center; background: ${bgColor}; color: ${textColor}; padding: 5px 10px; border-radius: 4px; font-size: 12px;">
+                        ${emoji} ${cor}
+                        <button onclick="removerCorSequencia(${index})" style="margin-left: 5px; background: none; border: none; color: ${textColor}; cursor: pointer;">×</button>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = items;
+        }
+
+        function removerCorSequencia(index) {
+            sequenciaAtual.splice(index, 1);
+            atualizarVisualizacaoSequencia();
+        }
+
+        function limparFormulario() {
+            document.getElementById('nomeEstrategia').value = '';
+            document.getElementById('descricaoEstrategia').value = '';
+            document.getElementById('numeroGatilho').value = '';
+            document.getElementById('pedrasEsperar').value = '';
+            document.getElementById('quantidadeMinima').value = '';
+            document.getElementById('janelaAnalise').value = '10';
+            document.getElementById('confiancaEstrategia').value = '70';
+            sequenciaAtual = [];
+            atualizarVisualizacaoSequencia();
+            alterarTipoEstrategia();
+        }
+
+        function salvarEstrategia() {
+            const tipo = document.getElementById('tipoEstrategia').value;
+            const nome = document.getElementById('nomeEstrategia').value.trim();
+            const descricao = document.getElementById('descricaoEstrategia').value.trim();
+            const apostarEm = document.getElementById('apostarEm').value;
+            const confianca = parseInt(document.getElementById('confiancaEstrategia').value);
+
+            if (!nome) {
+                alert('❌ Por favor, insira um nome para a estratégia!');
+                return;
+            }
+
+            let dadosEstrategia = {
+                tipo: tipo,
+                nome: nome,
+                descricao: descricao,
+                apostar_em: apostarEm,
+                confianca: confianca
+            };
+
+            // Adicionar campos específicos do tipo
+            if (tipo === 'sequencia') {
+                if (sequenciaAtual.length === 0) {
+                    alert('❌ Por favor, crie uma sequência de cores!');
+                    return;
+                }
+                dadosEstrategia.sequencia_cores = sequenciaAtual;
+            } else if (tipo === 'numero') {
+                const numeroGatilho = parseInt(document.getElementById('numeroGatilho').value);
+                const pedrasEsperar = parseInt(document.getElementById('pedrasEsperar').value);
+                
+                if (isNaN(numeroGatilho) || numeroGatilho < 0 || numeroGatilho > 14) {
+                    alert('❌ Por favor, insira um número gatilho válido (0-14)!');
+                    return;
+                }
+                if (isNaN(pedrasEsperar) || pedrasEsperar < 1) {
+                    alert('❌ Por favor, insira quantas pedras esperar!');
+                    return;
+                }
+                
+                dadosEstrategia.numero_gatilho = numeroGatilho;
+                dadosEstrategia.pedras_esperar = pedrasEsperar;
+            } else if (tipo === 'contagem') {
+                const corContar = document.getElementById('corContar').value;
+                const quantidadeMinima = parseInt(document.getElementById('quantidadeMinima').value);
+                const janelaAnalise = parseInt(document.getElementById('janelaAnalise').value);
+                
+                if (isNaN(quantidadeMinima) || quantidadeMinima < 1) {
+                    alert('❌ Por favor, insira uma quantidade mínima válida!');
+                    return;
+                }
+                
+                dadosEstrategia.cor_contar = corContar;
+                dadosEstrategia.quantidade_minima = quantidadeMinima;
+                dadosEstrategia.janela_analise = janelaAnalise;
+            }
+
+            // Enviar para o servidor
+            fetch('/api/estrategias/adicionar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dadosEstrategia)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'sucesso') {
+                    alert('✅ Estratégia criada com sucesso!');
+                    fecharModalEstrategia();
+                    atualizarEstrategiasPersonalizadas();
+                } else {
+                    alert('❌ Erro ao criar estratégia: ' + data.mensagem);
+                }
+            })
+            .catch(error => {
+                alert('❌ Erro ao salvar estratégia: ' + error);
+            });
+        }
+
+        function toggleEstrategia(id, ativar) {
+            fetch(`/api/estrategias/${id}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ativa: ativar })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'sucesso') {
+                    atualizarEstrategiasPersonalizadas();
+                } else {
+                    alert('❌ Erro ao alterar estratégia: ' + data.mensagem);
+                }
+            })
+            .catch(error => {
+                alert('❌ Erro ao alterar estratégia: ' + error);
+            });
+        }
+
+        function removerEstrategia(id) {
+            if (confirm('⚠️ Tem certeza que deseja remover esta estratégia?')) {
+                fetch(`/api/estrategias/${id}/remover`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'sucesso') {
+                        alert('🗑️ Estratégia removida com sucesso!');
+                        atualizarEstrategiasPersonalizadas();
+                    } else {
+                        alert('❌ Erro ao remover estratégia: ' + data.mensagem);
+                    }
+                })
+                .catch(error => {
+                    alert('❌ Erro ao remover estratégia: ' + error);
+                });
+            }
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            atualizarStatus();
+            intervalId = setInterval(atualizarStatus, 3000);
+        });
+    </script>
+
+ </body></html>
